@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solaris SOLX Ledger Portal</title>
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #151d30;
+            --bg-input: #080c14;
+            --primary: #f59e0b;
+            --primary-hover: #d97706;
+            --accent: #f97316;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+            --border: rgba(245, 158, 11, 0.2);
+            --border-focus: #f59e0b;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .solaris-container {
+            width: 100%;
+            max-width: 440px;
+            background-color: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(245, 158, 11, 0.05);
+            padding: 30px;
+        }
+
+        .portal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .portal-header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .portal-header p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+        }
+
+        .tab-navigation {
+            display: flex;
+            background-color: var(--bg-input);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: var(--bg-main);
+        }
+
+        .form-panel {
+            display: none;
+        }
+
+        .form-panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .font-code {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.75rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border: none;
+            border-radius: 12px;
+            color: var(--bg-main);
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 14px;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+            margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(249, 115, 22, 0.15);
+        }
+
+        .submit-btn:hover {
+            opacity: 0.95;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.99);
+        }
+
+        .loading-overlay {
+            display: none;
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(245, 158, 11, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .receipt-card {
+            display: none;
+            margin-top: 25px;
+            background-color: var(--bg-input);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 16px;
+        }
+
+        .receipt-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--success);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.75rem;
+        }
+
+        .receipt-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+        }
+
+        .receipt-value {
+            font-family: "Courier New", Courier, monospace;
+            color: var(--text-main);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="solaris-container">
+        <div class="portal-header">
+            <h1>Solaris</h1>
+            <p>Identity Cryptographic Ledger Link</p>
+        </div>
+
+        <div class="tab-navigation">
+            <button id="btn-register" class="tab-btn active" onclick="switchTab('register')">Secure Signup</button>
+            <button id="btn-checkout" class="tab-btn" onclick="switchTab('checkout')">Portal Transfer</button>
+        </div>
+
+        <div id="loader" class="loading-overlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Synchronizing secure sheet matrix...</div>
+        </div>
+
+        <div id="panel-register" class="form-panel active">
+            <form id="form-register" onsubmit="handleRegistration(event)">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="reg-firstname" placeholder="Jacob" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" id="reg-lastname" placeholder="Smith" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="reg-email" placeholder="name@domain.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="reg-dob" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number <span>(Optional)</span></label>
+                    <input type="tel" id="reg-phone" placeholder="e.g. 5551234567">
+                </div>
+                <button type="submit" class="submit-btn">Claim +100 SOLX Signup Bonus</button>
+            </form>
+        </div>
+
+        <div id="panel-checkout" class="form-panel">
+            <form id="form-checkout" onsubmit="handlePayment(event)">
+                <div class="form-group">
+                    <label>Buyer Wallet Address</label>
+                    
+                </div>
+                <div class="form-group">
+                    <label>Merchant Wallet Address</label>
+                    
+                </div>
+                <div class="form-group">
+                    <label>Purchase Cost (SOLX)</label>
+                    <input type="number" id="tx-price" value="30" min="1" required>
+                </div>
+                <button type="submit" class="submit-btn">Authorize Payout</button>
+            </form>
+        </div>
+
+        <div id="receipt" class="receipt-card">
+            <div id="receipt-title" class="receipt-title">Ledger Transaction Settled</div>
+            <div id="receipt-rows"></div>
+        </div>
+    </div>
+
+    <script>
+        // REPLACE THIS STRING WITH YOUR ACTUAL GOOGLE APPS SCRIPT WEB APP URL
+        const SOLARIS_API_URL = "https://script.google.com/macros/s/AKfycbxx2hXWIzhESU3cWI3Jm90zElzs2rgWAca66pzLdTkC_SvXE3nMajTl0-eOkuUVrdBg/exec";
+        let activeTab = 'register';
+
+        function switchTab(targetTab) {
+            activeTab = targetTab;
+document.getElementById('btn-register').classList.remove('active');
+document.getElementById('btn-checkout').classList.remove('active');
+document.getElementById('panel-register').classList.remove('active');
+document.getElementById('panel-checkout').classList.remove('active');
+document.getElementById('receipt').style.display = 'none';
+if (targetTab === 'register') {
+document.getElementById('btn-register').classList.add('active');
+document.getElementById('panel-register').classList.add('active');
+} else {
+document.getElementById('btn-checkout').classList.add('active');
+document.getElementById('panel-checkout').classList.add('active');
+}
+}
+function toggleLoading(show) {
+const loader = document.getElementById('loader');
+const regPanel = document.getElementById('panel-register');
+const txPanel = document.getElementById('panel-checkout');
+if (show) {
+loader.style.display = 'block';
+regPanel.style.display = 'none';
+txPanel.style.display = 'none';
+} else {
+loader.style.display = 'none';
+if (activeTab === 'register') {
+regPanel.style.display = 'block';
+} else {
+txPanel.style.display = 'block';
+}
+}
+}
+function printReceipt(title, color, dataObject) {
+const receipt = document.getElementById('receipt');
+const titleDiv = document.getElementById('receipt-title');
+const rowsContainer = document.getElementById('receipt-rows');
+titleDiv.style.color = color;
+rowsContainer.innerHTML = '';
+for (const [key, val] of Object.entries(dataObject)) {
+const row = document.createElement('div');
+row.className = 'receipt-row';
+row.innerHTML = <span class="receipt-label">${key.replace(/_/g, ' ')}</span> <span class="receipt-value" title="${val}">${val}</span>;
+rowsContainer.appendChild(row);
+}
+receipt.style.display = 'block';
+}
+async function sendLedgerTransaction(payload) {
+if (SOLARIS_API_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE" || SOLARIS_API_URL === "") {
+alert("Development Error: Please ensure you paste your Google Web App deployment link URL into the SOLARIS_API_URL parameter.");
+return;
+}
+toggleLoading(true);
+try {
+// Fetch to Google Apps Script Web App
+await fetch(SOLARIS_API_URL, {
+method: "POST",
+mode: "no-cors",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify(payload)
+});
+// Render success details locally since Google blocks read-back payloads on cross-origin pipelines
+if (payload.action === "create_wallet") {
+printReceipt("Wallet Account Request Sent", "var(--success)", {
+status: "Dispatched",
+account_name: payload.first_name + " " + payload.last_name,
+email: payload.email,
+starting_balance: "+50.00 SOLX",
+notice: "Data successfully routed to the secure sheets database. Open your Google Sheet to view the generated address string."
+});
+document.getElementById('form-register').reset();
+} else if (payload.action === "purchase_app") {
+printReceipt("Transaction Request Sent", "var(--success)", {
+status: "Dispatched",
+buyer_debit: payload.base_price + " SOLX",
+merchant_credit: (parseFloat(payload.base_price) + 0.25) + " SOLX",
+ecosystem_bonus: "+0.25 SOLX Minted",
+notice: "Transaction instructions executed on the backend engine. Google Sheet ledger updated."
+});
+document.getElementById('form-checkout').reset();
+}
+} catch (error) {
+printReceipt("Network Error", "var(--error)", {
+status: "Failed",
+diagnostic: "Could not link to secure spreadsheet engine. Check your Web API URL configurations setup."
+});
+} finally {
+toggleLoading(false);
+}
+}
+function handleRegistration(event) {
+event.preventDefault();
+const payload = {
+action: "create_wallet",
+first_name: document.getElementById('reg-firstname').value,
+last_name: document.getElementById('reg-lastname').value,
+email: document.getElementById('reg-email').value,
+dob: document.getElementById('reg-dob').value,
+phone: document.getElementById('reg-phone').value || ""
+};
+sendLedgerTransaction(payload);
+}
+function handlePayment(event) {
+event.preventDefault();
+const payload = {
+action: "purchase_app",
+buyer_wallet: document.getElementById('tx-buyer').value,
+merchant_wallet: document.getElementById('tx-merchant').value,
+base_price: document.getElementById('tx-price').value
+};
+sendLedgerTransaction(payload);
+}
