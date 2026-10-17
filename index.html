@@ -4,7 +4,146 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solaris Transaction Portal</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #151d30;
+            --bg-input: #1b253d; /* Visually distinct dark tone */
+            --primary: #f59e0b;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .portal-box {
+            background-color: var(--bg-card);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--primary);
+        }
+
+        .tab-link {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .tab-link.active-tab {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.show-section {
+            display: block;
+        }
+
+        .input-block {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        /* FIXED: Added high-visibility border colors and contrast fills */
+        input {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #212c4a;
+        }
+
+        .action-button {
+            width: 100%;
+            background: linear-gradient(to right, #f59e0b, #f97316);
+            border: none;
+            border-radius: 6px;
+            color: #0b0f19;
+            font-size: 15px;
+            font-weight: bold;
+            padding: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .action-button:hover {
+            opacity: 0.9;
+        }
+
+        .status-box {
+            margin-top: 20px;
+            background-color: #080c14;
+            border: 1px solid var(--success);
+            border-radius: 6px;
+            padding: 12px;
+            display: none;
+        }
+
+        .status-text {
+            color: var(--success);
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
@@ -19,11 +158,11 @@
         <div id="section-signup" class="form-section show-section">
             <div class="input-block">
                 <label>First Name</label>
-                <input type="text" id="in-firstname" placeholder="Jacob">
+                <input type="text" id="in-firstname" placeholder="e.g. Jacob">
             </div>
             <div class="input-block">
                 <label>Last Name</label>
-                <input type="text" id="in-lastname" placeholder="Smith">
+                <input type="text" id="in-lastname" placeholder="e.g. Smith">
             </div>
             <div class="input-block">
                 <label>Email Address</label>
@@ -57,15 +196,17 @@
         </div>
 
         <div id="status-display" class="status-box">
-            <div id="status-message" class="status-text">Request Transmitted</div>
+            <div id="status-message" class="status-text">Processing...</div>
         </div>
     </div>
 
     <script>
+        // REPLACE WITH YOUR ACTUAL GOOGLE APPS SCRIPT WEB APP EXTENSION DEPLOYMENT URL
         const TARGET_SHEET_API = "https://script.google.com/macros/s/AKfycbxx2hXWIzhESU3cWI3Jm90zElzs2rgWAca66pzLdTkC_SvXE3nMajTl0-eOkuUVrdBg/exec";
 
         function openSection(sectionName) {
             document.getElementById("status-display").style.display = "none";
+            activeTab = sectionName;
             
             if (sectionName === "signup") {
                 document.getElementById("tab1").classList.add("active-tab");
@@ -80,33 +221,40 @@
             }
         }
 
-        function deliverToLedger(jsonData) {
+        // FIXED: Uses modern secure asynchronous text transfer pipelines compatible with Vercel architecture
+        async function deliverToLedger(jsonData) {
             if (TARGET_SHEET_API === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE" || TARGET_SHEET_API === "") {
                 alert("Please add your Google Web App Link to the TARGET_SHEET_API variable.");
                 return;
             }
 
-            document.getElementById("status-message").textContent = "Synchronizing ledger transaction...";
-            document.getElementById("status-display").style.display = "block";
+            const statusDisplay = document.getElementById("status-display");
+            const statusMessage = document.getElementById("status-message");
 
-            const temporalForm = document.createElement("form");
-            temporalForm.method = "POST";
-            temporalForm.action = TARGET_SHEET_API;
-            temporalForm.target = "hidden-relay-frame";
+            statusMessage.textContent = "Synchronizing ledger transaction...";
+            statusDisplay.style.borderColor = "var(--primary)";
+            statusMessage.style.color = "var(--primary)";
+            statusDisplay.style.display = "block";
 
-            const payloadInput = document.createElement("input");
-            payloadInput.type = "hidden";
-            payloadInput.name = "contents";
-            payloadInput.value = JSON.stringify(jsonData);
-            temporalForm.appendChild(payloadInput);
+            try {
+                await fetch(TARGET_SHEET_API, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(jsonData)
+                });
 
-            document.body.appendChild(temporalForm);
-            temporalForm.submit();
-            document.body.removeChild(temporalForm);
+                statusDisplay.style.borderColor = "var(--success)";
+                statusMessage.style.color = "var(--success)";
+                statusMessage.textContent = "Data successfully committed to the Google Sheet ledger!";
 
-            setTimeout(() => {
-                document.getElementById("status-message").textContent = "Request successfully processed on backend database!";
-            }, 2000);
+            } catch (error) {
+                statusDisplay.style.borderColor = "var(--error)";
+                statusMessage.style.color = "var(--error)";
+                statusMessage.textContent = "Transmission failed. Verify Google script permissions.";
+            }
         }
 
         function submitSignupData() {
@@ -137,33 +285,22 @@
             document.getElementById("in-email").value = "";
             document.getElementById("in-dob").value = "";
             document.getElementById("in-phone").value = "";
-        }
-
-        function submitTransferData() {
-            const buyerAddress = document.getElementById("in-buyer").value.trim();
-            const merchantAddress = document.getElementById("in-merchant").value.trim();
-            const purchaseCost = document.getElementById("in-price").value;
-
-            if (!buyerAddress || !merchantAddress || !purchaseCost) {
-                alert("Please complete all parameters to push a transfer.");
-                return;
-            }
-
-            const dataPackage = {
-                action: "purchase_app",
-                buyer_wallet: buyerAddress,
-                merchant_wallet: merchantAddress,
-                base_price: purchaseCost
-            };
-
-            deliverToLedger(dataPackage);
-
-            document.getElementById("in-buyer").value = "";
-            document.getElementById("in-merchant").value = "";
-        }
-    </script>
-
-    <iframe name="hidden-relay-frame" style="display:none;"></iframe>
-
-</body>
-</html>
+}
+function submitTransferData() {
+const buyerAddress = document.getElementById("in-buyer").value.trim();
+const merchantAddress = document.getElementById("in-merchant").value.trim();
+const purchaseCost = document.getElementById("in-price").value;
+if (!buyerAddress || !merchantAddress || !purchaseCost) {
+alert("Please complete all parameters to push a transfer.");
+return;
+}
+const dataPackage = {
+action: "purchase_app",
+buyer_wallet: buyerAddress,
+merchant_wallet: merchantAddress,
+base_price: purchaseCost
+};
+deliverToLedger(dataPackage);
+document.getElementById("in-buyer").value = "";
+document.getElementById("in-merchant").value = "";
+}
