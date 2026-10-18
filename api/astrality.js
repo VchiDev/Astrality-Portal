@@ -1,147 +1,97 @@
 
-/**
- * Astrality API — Vercel serverless function
- *
- * Required Vercel environment variables:
- *   ASTRALITY_APPS_SCRIPT_URL
- *   ASTRALITY_API_SECRET
- *
- * IMPORTANT:
- * Code.gs must verify the shared secret BEFORE processing any action.
- * Do not deploy this against an unprotected public Apps Script endpoint.
- */
+const APPS_SCRIPT_URL = process.env.ASTRALITY_APPS_SCRIPT_URL;
+const API_SECRET = process.env.ASTRALITY_API_SECRET;
 
-const ALLOWED_ACTIONS = new Set(["signup", "login"]);
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({
-      ok: false,
-      error: "Method not allowed."
+      success: false,
+      message: "Only POST requests are allowed."
     });
   }
 
-  const scriptUrl = process.env.ASTRALITY_APPS_SCRIPT_URL;
-  const apiSecret = process.env.ASTRALITY_API_SECRET;
-
-  if (!scriptUrl || !apiSecret) {
+  if (!APPS_SCRIPT_URL || !API_SECRET) {
     return res.status(500).json({
-      ok: false,
-      error: "Astrality backend is not configured."
+      success: false,
+      message: "Server configuration is incomplete. Check the Vercel environment variables."
     });
   }
 
-  // Only allow the expected Google Apps Script deployment URL.
-  let parsedUrl;
-  try {
-    parsedUrl = new URL(scriptUrl);
-  } catch {
-    return res.status(500).json({
-      ok: false,
-      error: "Invalid backend configuration."
-    });
-  }
+  let data = req.body;
 
-  if (
-    parsedUrl.protocol !== "https:" ||
-    parsedUrl.hostname !== "script.google.com" ||
-    !parsedUrl.pathname.includes("/macros/s/") ||
-    !parsedUrl.pathname.endsWith("/exec")
-  ) {
-    return res.status(500).json({
-      ok: false,
-      error: "Invalid backend configuration."
-    });
-  }
-
-  const body = req.body;
-
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return res.status(400).json({
-      ok: false,
-      error: "Invalid request body."
-    });
-  }
-
-  if (!ALLOWED_ACTIONS.has(body.action)) {
-    return res.status(400).json({
-      ok: false,
-      error: "Unsupported action."
-    });
-  }
-
-  // Basic field validation. The backend must validate again.
-  if (body.action === "signup") {
-    if (
-      typeof body.name !== "string" ||
-      typeof body.email !== "string" ||
-      typeof body.password !== "string" ||
-      body.name.length > 100 ||
-      body.email.length > 254 ||
-      body.password.length < 12 ||
-      body.password.length > 128
-    ) {
+  if (typeof data === "string") {
+    try {
+      data = JSON.parse(data);
+    } catch {
       return res.status(400).json({
-        ok: false,
-        error: "Please check your registration details."
+        success: false,
+        message: "The request contains invalid JSON."
       });
     }
   }
 
-  if (body.action === "login") {
-    if (
-      typeof body.walletAddress !== "string" ||
-      typeof body.password !== "string" ||
-      body.walletAddress.length > 150 ||
-      body.password.length < 1 ||
-      body.password.length > 128
-    ) {
-      return res.status(400).json({
-        ok: false,
-        error: "Please check your login details."
-      });
-    }
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid request data."
+    });
+  }
+
+  if (typeof data.action !== "string" || !data.action.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "A valid action is required."
+    });
   }
 
   try {
-    const upstream = await fetch(scriptUrl, {
+    const response = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        ...body,
-        serverSecret: apiSecret
+        ...data,
+        secret: API_SECRET
       }),
-      redirect: "follow",
-      signal: AbortSignal.timeout(15000)
+      redirect: "follow"
     });
 
-    if (!upstream.ok) {
+    const responseText = await response.text();
+
+    let result;
+
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      console.error(
+        "Apps Script returned a non-JSON response. HTTP status:",
+        response.status
+      );
+
       return res.status(502).json({
-        ok: false,
-        error: "The Astrality backend is temporarily unavailable."
+        success: false,
+        message: "The Astrality backend returned an unexpected response. Check your Apps Script deployment."
       });
     }
 
-    const result = await upstream.json();
-
-    if (!result || typeof result.ok !== "boolean") {
+    if (!response.ok) {
       return res.status(502).json({
-        ok: false,
-        error: "Unexpected response from the Astrality backend."
+        success: false,
+        message: "The Astrality backend could not complete the request."
       });
     }
 
-    // Never log passwords, secrets, or account data.
     return res.status(200).json(result);
-  } catch {
+  } catch (error) {
+    console.error("Astrality backend request failed:", error.message);
+
     return res.status(502).json({
-      ok: false,
-      error: "Could not reach the Astrality backend."
+      success: false,
+      message: "Could not connect to the Astrality backend. Please try again."
     });
   }
-}
+};
