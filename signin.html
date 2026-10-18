@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090c13">
+  <title>Sign In — Astrality</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090c13;
+      --panel: #121927;
+      --line: #283246;
+      --text: #f4f6fc;
+      --muted: #a0acc0;
+      --purple: #b5a6ff;
+      --mint: #8ce6ce;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(ellipse at top, #24234b 0, transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+    }
+
+    a { color: var(--purple); text-decoration: none; }
+
+    .top {
+      position: absolute;
+      top: 22px;
+      left: 26px;
+      right: 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.7px;
+    }
+
+    .brand span { color: var(--purple); }
+
+    .panel {
+      width: min(100%, 460px);
+      padding: 34px;
+      background: rgba(18, 25, 39, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 24px 80px #0005;
+    }
+
+    .eyebrow {
+      color: var(--mint);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 10px 0;
+      font-size: clamp(28px, 6vw, 36px);
+      letter-spacing: -1.2px;
+    }
+
+    .sub {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 5px;
+      margin-bottom: 24px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0b101a;
+      gap: 5px;
+    }
+
+    .tabs button {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 8px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      color: var(--text);
+      background: #282643;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 7px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      color: var(--text);
+      background: #0b101a;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      outline: none;
+      font: inherit;
+    }
+
+    input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px #b5a6ff20;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 7px;
+    }
+
+    .primary {
+      width: 100%;
+      margin-top: 23px;
+      padding: 14px;
+      border: 0;
+      border-radius: 10px;
+      color: #111222;
+      background: linear-gradient(110deg, var(--purple), var(--mint));
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .status {
+      display: none;
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #0b101a;
+      border: 1px solid var(--line);
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .status.show { display: block; }
+    .status.error { border-color: #b65b6b; }
+    .status.success { border-color: #5aa994; }
+
+    .wallet {
+      display: none;
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid #5aa994;
+      border-radius: 12px;
+      background: #10231f;
+    }
+
+    .wallet strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--mint);
+    }
+
+    .wallet code {
+      display: block;
+      overflow-wrap: anywhere;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .copy {
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: #203b35;
+      color: var(--mint);
+      border: 1px solid #396c60;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .foot {
+      margin-top: 23px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 90px 16px 24px; }
+      .top { left: 18px; right: 18px; }
+      .panel { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="index.html">ASTR<span>ALITY</span></a>
+    <a href="index.html">← Back home</a>
+  </header>
+
+  <main class="panel">
+    <div class="eyebrow">Your Astrality account</div>
+    <h1 id="heading">Create your wallet</h1>
+    <p class="sub" id="description">
+      Create an account to receive your unique ASTR wallet and one-time
+      100 ASTR welcome bonus.
+    </p>
+
+    <div class="tabs" role="tablist" aria-label="Account action">
+      <button id="createTab" class="active" type="button"
+        role="tab" aria-selected="true">Create wallet</button>
+      <button id="loginTab" type="button"
+        role="tab" aria-selected="false">Sign in</button>
+    </div>
+
+    <form id="accountForm">
+      <div id="nameGroup">
+        <label for="displayName">Account name</label>
+        <input id="displayName" name="displayName"
+          autocomplete="name" maxlength="80"
+          placeholder="Your display name">
+      </div>
+
+      <div id="emailGroup">
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email"
+          autocomplete="email" maxlength="254"
+          placeholder="you@example.com">
+      </div>
+
+      <div id="walletGroup" hidden>
+        <label for="walletAddress">Wallet address</label>
+        <input id="walletAddress" name="walletAddress"
+          autocomplete="username" maxlength="200"
+          placeholder="Enter your Astrality wallet address">
+      </div>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password"
+        autocomplete="new-password" minlength="12"
+        maxlength="128" required
+        placeholder="At least 12 characters">
+      <p class="hint" id="passwordHint">
+        Use a unique password with at least 12 characters.
+      </p>
+
+      <button class="primary" id="submitButton" type="submit">
+        Create my wallet
+      </button>
+    </form>
+
+    <div id="status" class="status" role="status"
+      aria-live="polite"></div>
+
+    <div id="walletResult" class="wallet">
+      <strong>Your new wallet address</strong>
+      <code id="walletText"></code>
+      <button id="copyButton" class="copy" type="button">
+        Copy wallet address
+      </button>
+      <p class="hint">
+        Save this address somewhere safe. Your welcome bonus should
+        be credited only once by the server.
+      </p>
+    </div>
+
+    <div class="foot">
+      By continuing, you agree to use ASTR according to the
+      Astrality platform rules. ASTR balances and displayed values
+      are internal ledger figures, not guaranteed cash or investment returns.
+    </div>
+  </main>
+
+  <script>
+    // Set this to your deployed backend URL if it is hosted elsewhere.
+    const API_URL = "/api/astrality";
+
+    const form = document.getElementById("accountForm");
+    const createTab = document.getElementById("createTab");
+    const loginTab = document.getElementById("loginTab");
+    const nameGroup = document.getElementById("nameGroup");
+    const emailGroup = document.getElementById("emailGroup");
+    const walletGroup = document.getElementById("walletGroup");
+    const heading = document.getElementById("heading");
+    const description = document.getElementById("description");
+    const password = document.getElementById("password");
+    const passwordHint = document.getElementById("passwordHint");
+    const submitButton = document.getElementById("submitButton");
+    const statusBox = document.getElementById("status");
+    const walletResult = document.getElementById("walletResult");
+    const walletText = document.getElementById("walletText");
+
+    let mode = "signup";
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      const creating = mode === "signup";
+
+      createTab.classList.toggle("active", creating);
+      loginTab.classList.toggle("active", !creating);
+      createTab.setAttribute("aria-selected", String(creating));
+      loginTab.setAttribute("aria-selected", String(!creating));
+
+      nameGroup.hidden = !creating;
+      emailGroup.hidden = !creating;
+      walletGroup.hidden = creating;
+
+      document.getElementById("displayName").required = creating;
+      document.getElementById("email").required = creating;
+      document.getElementById("walletAddress").required = !creating;
+
+      password.autocomplete = creating ? "new-password" : "current-password";
+      heading.textContent = creating ? "Create your wallet" : "Welcome back";
+      description.textContent = creating
+        ? "Create an account and receive a unique ASTR wallet."
+        : "Sign in using your wallet address and password.";
+      passwordHint.textContent = creating
+        ? "Use a unique password with at least 12 characters."
+        : "Enter the password for your existing account.";
+      password.minLength = creating ? 12 : 1;
+      submitButton.textContent = creating ? "Create my wallet" : "Sign in";
+      statusBox.className = "status";
+      statusBox.textContent = "";
+      walletResult.style.display = "none";
+    }
+
+    createTab.addEventListener("click", () => setMode("signup"));
+    loginTab.addEventListener("click", () => setMode("login"));
+
+    function showStatus(message, kind) {
+      statusBox.textContent = message;
+      statusBox.className = "status show " + kind;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      walletResult.style.display = "none";
+      statusBox.className = "status";
+
+      if (!form.reportValidity()) return;
+
+      const payload = mode === "signup"
+        ? {
+            action: "signup",
+            displayName: document.getElementById("displayName").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            password: password.value
+          }
+        : {
+            action: "login",
+            walletAddress: document.getElementById("walletAddress").value.trim(),
+            password: password.value
+          };
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Please wait…";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || "The request could not be completed.");
+        }
+
+        if (mode === "signup") {
+          if (!result.walletAddress) {
+            throw new Error("The server did not return a wallet address.");
+          }
+
+          walletText.textContent = result.walletAddress;
+          walletResult.style.display = "block";
+
+          showStatus(
+            result.message ||
+            "Your account was created. Check your email for your wallet address.",
+            "success"
+          );
+
+          form.reset();
+        } else {
+          // The backend must establish a secure session cookie.
+          // Do not store passwords or treat browser storage as authentication.
+          showStatus("Signed in successfully. Opening your account…", "success");
+          window.location.assign("transactions.html");
+        }
+      } catch (error) {
+        showStatus(
+          error.message === "Failed to fetch"
+            ? "Could not reach the backend. Deploy the API and check its URL."
+            : error.message,
+          "error"
+        );
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent =
+          mode === "signup" ? "Create my wallet" : "Sign in";
+      }
+    });
+
+    document.getElementById("copyButton").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(walletText.textContent);
+        document.getElementById("copyButton").textContent = "Copied!";
+      } catch {
+        showStatus("Please select and copy the wallet address manually.", "error");
+      }
+    });
+
+    setMode("signup");
+  </script>
+</body>
+</html>
