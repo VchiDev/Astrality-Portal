@@ -1,305 +1,357 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solaris Transaction Portal</title>
-    <style>
-        :root {
-            --bg-main: #0b0f19;
-            --bg-card: #151d30;
-            --bg-input: #1b253d; /* Visually distinct dark tone */
-            --primary: #f59e0b;
-            --text-main: #ffffff;
-            --text-muted: #9ca3af;
-            --success: #10b981;
-            --error: #ef4444;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090c13">
+  <title>Astrality — ASTR Digital Currency</title>
+  <meta name="description" content="Discover Astrality (ASTR), its digital wallets, transfers, and internal valuation system.">
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: sans-serif;
-        }
+  <style>
+    :root {
+      --bg: #090c13;
+      --panel: #121927;
+      --line: #283246;
+      --text: #f4f6fc;
+      --muted: #a0acc0;
+      --purple: #b5a6ff;
+      --mint: #8ce6ce;
+    }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+    * { box-sizing: border-box; }
 
-        .portal-box {
-            background-color: var(--bg-card);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            padding: 25px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
+    html { scroll-behavior: smooth; }
 
-        h1 {
-            text-align: center;
-            color: var(--primary);
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-        }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 65% -10%, #292749, transparent 48%),
+        var(--bg);
+      color: var(--text);
+      font: 16px/1.65 Inter, system-ui, sans-serif;
+    }
 
-        .nav-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--primary);
-        }
+    a { color: inherit; }
 
-        .tab-link {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            padding: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            text-align: center;
-        }
+    .container {
+      width: min(1100px, calc(100% - 40px));
+      margin: auto;
+    }
 
-        .tab-link.active-tab {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-        }
+    header {
+      min-height: 88px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      border-bottom: 1px solid var(--line);
+    }
 
-        .form-section {
-            display: none;
-        }
+    .logo {
+      width: 45px;
+      height: 45px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--purple), var(--mint));
+      color: #101522;
+      font-size: 26px;
+      font-weight: 900;
+    }
 
-        .form-section.show-section {
-            display: block;
-        }
+    .brand {
+      font-weight: 900;
+      letter-spacing: .17em;
+    }
 
-        .input-block {
-            margin-bottom: 15px;
-        }
+    .tagline {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: .12em;
+    }
 
-        label {
-            display: block;
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-        }
+    nav {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        /* FIXED: Added high-visibility border colors and contrast fills */
-        input {
-            width: 100%;
-            background-color: var(--bg-input);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 6px;
-            padding: 12px;
-            color: var(--text-main);
-            font-size: 14px;
-        }
+    .button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 17px;
+      border: 1px solid #3a4560;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 750;
+      transition: transform .15s, opacity .15s;
+    }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #212c4a;
-        }
+    .button:hover {
+      transform: translateY(-2px);
+      opacity: .9;
+    }
 
-        .action-button {
-            width: 100%;
-            background: linear-gradient(to right, #f59e0b, #f97316);
-            border: none;
-            border-radius: 6px;
-            color: #0b0f19;
-            font-size: 15px;
-            font-weight: bold;
-            padding: 12px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
+    .primary {
+      background: linear-gradient(100deg, var(--purple), var(--mint));
+      color: #101522;
+      border: none;
+    }
 
-        .action-button:hover {
-            opacity: 0.9;
-        }
+    .hero {
+      padding: 90px 0 65px;
+      max-width: 800px;
+    }
 
-        .status-box {
-            margin-top: 20px;
-            background-color: #080c14;
-            border: 1px solid var(--success);
-            border-radius: 6px;
-            padding: 12px;
-            display: none;
-        }
+    .eyebrow {
+      color: var(--mint);
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .19em;
+    }
 
-        .status-text {
-            color: var(--success);
-            font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-        }
-    </style>
+    h1 {
+      margin: 18px 0;
+      font-size: clamp(45px, 8vw, 82px);
+      line-height: 1.02;
+      letter-spacing: -.065em;
+    }
+
+    h1 span { color: var(--purple); }
+
+    .hero p {
+      max-width: 690px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 27px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 17px;
+      margin: 25px 0 75px;
+    }
+
+    .card {
+      padding: 25px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: linear-gradient(145deg, #151e2e, #101520);
+    }
+
+    .card-icon { font-size: 27px; }
+
+    .card h2 {
+      margin: 12px 0 7px;
+      font-size: 19px;
+    }
+
+    .card p, .section p {
+      color: var(--muted);
+    }
+
+    .section {
+      padding: 25px 0 65px;
+      max-width: 850px;
+    }
+
+    .section h2 {
+      font-size: clamp(27px, 4vw, 37px);
+      letter-spacing: -.035em;
+    }
+
+    .formula {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #0e1420;
+      color: #d5ceff;
+      font-family: ui-monospace, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .disclaimer {
+      font-size: 12px;
+      color: #8995a9;
+    }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 25px 0;
+      border-top: 1px solid var(--line);
+      color: #8995a9;
+      font-size: 12px;
+    }
+
+    footer a { color: var(--purple); }
+
+    @media (max-width: 720px) {
+      .container { width: min(100% - 28px, 1100px); }
+      header { flex-wrap: wrap; padding: 14px 0; }
+      nav { gap: 7px; }
+      nav .button { padding: 9px 10px; font-size: 12px; }
+      .hero { padding: 60px 0 45px; }
+      .hero p { font-size: 16px; }
+      .cards { grid-template-columns: 1fr; margin-bottom: 45px; }
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container">
 
-    <div class="portal-box">
-        <h1>SOLARIS</h1>
+    <header>
+      <div class="logo">✦</div>
 
-        <div class="nav-tabs">
-            <button id="tab1" class="tab-link active-tab" onclick="openSection('signup')">Secure Signup</button>
-            <button id="tab2" class="tab-link" onclick="openSection('transfer')">Portal Transfer</button>
+      <div>
+        <div class="brand">ASTRALITY</div>
+        <div class="tagline">CENTRAL DIGITAL CURRENCY · ASTR</div>
+      </div>
+
+      <nav>
+        <a class="button" href="transactions.html">
+          Transactions
+        </a>
+        <a class="button primary" href="signin.html">
+          Sign in / Create wallet →
+        </a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">A NEW DIGITAL CURRENCY EXPERIENCE</div>
+
+        <h1>Discover <span>Astrality.</span></h1>
+
+        <p>
+          Astrality (ASTR) is a centrally managed digital currency
+          designed for digital wallets, purchases, deposits, and
+          transfers within the Astrality system.
+        </p>
+
+        <div class="actions">
+          <a class="button primary" href="signin.html">
+            Create your wallet →
+          </a>
+
+          <a class="button" href="transactions.html">
+            Explore transactions
+          </a>
         </div>
 
-        <div id="section-signup" class="form-section show-section">
-            <div class="input-block">
-                <label>First Name</label>
-                <input type="text" id="in-firstname" placeholder="e.g. Jacob">
-            </div>
-            <div class="input-block">
-                <label>Last Name</label>
-                <input type="text" id="in-lastname" placeholder="e.g. Smith">
-            </div>
-            <div class="input-block">
-                <label>Email Address</label>
-                <input type="email" id="in-email" placeholder="name@domain.com">
-            </div>
-            <div class="input-block">
-                <label>Date of Birth</label>
-                <input type="date" id="in-dob">
-            </div>
-            <div class="input-block">
-                <label>Phone Number (Optional)</label>
-                <input type="tel" id="in-phone" placeholder="5551234567">
-            </div>
-            <button type="button" class="action-button" onclick="submitSignupData()">Claim +100 SOLX Signup Bonus</button>
+        <p class="disclaimer">
+          ASTR is an internal digital currency in this application.
+          Its displayed USD value is calculated by Astrality and is
+          not a guaranteed exchange rate or promise of cash redemption.
+        </p>
+      </section>
+
+      <section class="cards">
+        <article class="card">
+          <div class="card-icon">◈</div>
+          <h2>Your digital wallet</h2>
+          <p>
+            Create an account, receive a unique wallet address by email,
+            and view your balance in the Astrality ledger.
+          </p>
+        </article>
+
+        <article class="card">
+          <div class="card-icon">⇄</div>
+          <h2>Send and deposit</h2>
+          <p>
+            Visit the transaction portal to send ASTR to other wallets
+            or submit a deposit request.
+          </p>
+        </article>
+
+        <article class="card">
+          <div class="card-icon">✧</div>
+          <h2>100 ASTR welcome bonus</h2>
+          <p>
+            Each newly created account is eligible for a one-time
+            100 ASTR welcome credit, recorded by the backend.
+          </p>
+        </article>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">THE ASTR VALUATION MODEL</div>
+
+        <h2>A defined adjustment formula.</h2>
+
+        <p>
+          Astrality uses the number of buyers and an item's ASTR price
+          to calculate the increase in its internal valuation adjustment.
+        </p>
+
+        <div class="formula">
+          Increase in percentage points = (number of buyers ÷ 4)
+          × item price in ASTR
         </div>
 
-        <div id="section-transfer" class="form-section">
-            <div class="input-block">
-                <label>Buyer Wallet Address</label>
-                
-            </div>
-            <div class="input-block">
-                <label>Merchant Wallet Address</label>
-                
-            </div>
-            <div class="input-block">
-                <label>Purchase Cost (SOLX)</label>
-                <input type="number" id="in-price" value="30">
-            </div>
-            <button type="button" class="action-button" onclick="submitTransferData()">Authorize Payout</button>
+        <p>
+          For example, one buyer purchasing a 28 ASTR item produces
+          an adjustment increase of 7 percentage points.
+        </p>
+
+        <p>
+          The welcome bonus can also affect the adjustment if the
+          backend treats it as a qualifying event. Under the same
+          formula, a qualifying 100 ASTR credit with one buyer would
+          add 25 percentage points.
+        </p>
+
+        <h2>How the displayed USD value is calculated.</h2>
+
+        <div class="formula">
+          USD value = (ASTR balance ÷ 2.5)
+          × (1 + adjustment percentage ÷ 100)
         </div>
 
-        <div id="status-display" class="status-box">
-            <div id="status-message" class="status-text">Processing...</div>
-        </div>
-    </div>
+        <p>
+          For example, 25 ASTR with a 7% adjustment displays an
+          illustrative value of $10.70.
+        </p>
 
-    <script>
-        const TARGET_SHEET_API = "https://script.google.com/macros/s/AKfycbxx2hXWIzhESU3cWI3Jm90zElzs2rgWAca66pzLdTkC_SvXE3nMajTl0-eOkuUVrdBg/exec";
+        <p class="disclaimer">
+          These are internal accounting rules. They do not independently
+          establish market demand, a redeemable USD price, or guaranteed
+          investment returns. Actual balances and adjustments must be
+          calculated and stored by the server.
+        </p>
+      </section>
+    </main>
 
-        function openSection(sectionName) {
-            document.getElementById("status-display").style.display = "none";
-            activeTab = sectionName;
-            
-            if (sectionName === "signup") {
-                document.getElementById("tab1").classList.add("active-tab");
-                document.getElementById("tab2").classList.remove("active-tab");
-                document.getElementById("section-signup").classList.add("show-section");
-                document.getElementById("section-transfer").classList.remove("show-section");
-            } else {
-                document.getElementById("tab2").classList.add("active-tab");
-                document.getElementById("tab1").classList.remove("active-tab");
-                document.getElementById("section-transfer").classList.add("show-section");
-                document.getElementById("section-signup").classList.remove("show-section");
-            }
-        }
+    <footer>
+      <span>© <span id="year"></span> Astrality · ASTR</span>
 
-        // FIXED: Uses modern secure asynchronous text transfer pipelines compatible with Vercel architecture
-        async function deliverToLedger(jsonData) {
-            if (TARGET_SHEET_API === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE" || TARGET_SHEET_API === "") {
-                alert("Please add your Google Web App Link to the TARGET_SHEET_API variable.");
-                return;
-            }
+      <span>
+        <a href="signin.html">Sign in</a>
+        &nbsp;·&nbsp;
+        <a href="transactions.html">Transactions</a>
+      </span>
+    </footer>
 
-            const statusDisplay = document.getElementById("status-display");
-            const statusMessage = document.getElementById("status-message");
+  </div>
 
-            statusMessage.textContent = "Synchronizing ledger transaction...";
-            statusDisplay.style.borderColor = "var(--primary)";
-            statusMessage.style.color = "var(--primary)";
-            statusDisplay.style.display = "block";
-
-            try {
-                await fetch(TARGET_SHEET_API, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(jsonData)
-                });
-
-                statusDisplay.style.borderColor = "var(--success)";
-                statusMessage.style.color = "var(--success)";
-                statusMessage.textContent = "Data successfully committed to the Google Sheet ledger!";
-
-            } catch (error) {
-                statusDisplay.style.borderColor = "var(--error)";
-                statusMessage.style.color = "var(--error)";
-                statusMessage.textContent = "Transmission failed. Verify Google script permissions.";
-            }
-        }
-
-        function submitSignupData() {
-            const fName = document.getElementById("in-firstname").value.trim();
-            const lName = document.getElementById("in-lastname").value.trim();
-            const emailAddr = document.getElementById("in-email").value.trim();
-            const birthDate = document.getElementById("in-dob").value;
-            const phoneNumber = document.getElementById("in-phone").value.trim();
-
-            if (!fName || !lName || !emailAddr || !birthDate) {
-                alert("Please complete all required fields to register.");
-                return;
-            }
-
-            const dataPackage = {
-                action: "create_wallet",
-                first_name: fName,
-                last_name: lName,
-                email: emailAddr,
-                dob: birthDate,
-                phone: phoneNumber
-            };
-
-            deliverToLedger(dataPackage);
-
-            document.getElementById("in-firstname").value = "";
-            document.getElementById("in-lastname").value = "";
-            document.getElementById("in-email").value = "";
-            document.getElementById("in-dob").value = "";
-            document.getElementById("in-phone").value = "";
-}
-function submitTransferData() {
-const buyerAddress = document.getElementById("in-buyer").value.trim();
-const merchantAddress = document.getElementById("in-merchant").value.trim();
-const purchaseCost = document.getElementById("in-price").value;
-if (!buyerAddress || !merchantAddress || !purchaseCost) {
-alert("Please complete all parameters to push a transfer.");
-return;
-}
-const dataPackage = {
-action: "purchase_app",
-buyer_wallet: buyerAddress,
-merchant_wallet: merchantAddress,
-base_price: purchaseCost
-};
-deliverToLedger(dataPackage);
-document.getElementById("in-buyer").value = "";
-document.getElementById("in-merchant").value = "";
-}
+  <script>
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+  </script>
+</body>
+</html>
