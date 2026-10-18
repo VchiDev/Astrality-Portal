@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Astrality Portal — Wallet</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 28px 16px;
+      font-family: Arial, sans-serif;
+      color: #f4f2ff;
+      background:
+        radial-gradient(ellipse at top, #30265c, transparent 55%),
+        #0c0b17;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    h1 { margin: 0; font-size: 28px; }
+    h2 { margin-top: 0; font-size: 19px; }
+    p { line-height: 1.6; }
+
+    a { color: #b8aaff; }
+
+    .panel {
+      padding: 22px;
+      margin-bottom: 20px;
+      border: 1px solid #393453;
+      border-radius: 15px;
+      background: #141225;
+    }
+
+    .muted { color: #aaa4c8; font-size: 13px; }
+
+    label {
+      display: block;
+      margin: 13px 0 7px;
+      font-size: 13px;
+      color: #d8d3ee;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      color: white;
+      background: #100e20;
+      border: 1px solid #393453;
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    button {
+      padding: 11px 15px;
+      border: 0;
+      border-radius: 8px;
+      background: #7058e9;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+
+    button.secondary {
+      border: 1px solid #50466f;
+      background: #292442;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 15px;
+    }
+
+    .balance {
+      font-size: 34px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .wallet {
+      overflow-wrap: anywhere;
+      font-family: monospace;
+      color: #c6bcff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .notice {
+      display: none;
+      padding: 13px;
+      margin: 15px 0;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .notice.info {
+      display: block;
+      background: #211d40;
+      color: #ddd5ff;
+    }
+
+    .notice.success {
+      display: block;
+      background: #153526;
+      color: #b5f7d0;
+    }
+
+    .notice.error {
+      display: block;
+      background: #381b26;
+      color: #ffc0c0;
+    }
+
+    .hidden { display: none !important; }
+
+    .transaction {
+      padding: 14px 0;
+      border-bottom: 1px solid #393453;
+      overflow-wrap: anywhere;
+    }
+
+    .transaction:last-child { border-bottom: 0; }
+
+    .transaction strong { display: block; margin-bottom: 6px; }
+    .amount { color: #c6bcff; font-weight: bold; }
+
+    @media (max-width: 480px) {
+      .panel { padding: 17px; }
+      .balance { font-size: 27px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <h1>Astrality Wallet</h1>
+      <a href="index.html">Back to Portal</a>
+    </header>
+
+    <div id="notice" class="notice" role="status"
+         aria-live="polite"></div>
+
+    <section id="loginPanel" class="panel">
+      <h2>Access Your Wallet</h2>
+      <p class="muted">
+        Sign in with your Astrality wallet address and password.
+      </p>
+
+      <form id="loginForm">
+        <label for="walletAddress">Wallet Address</label>
+        <input id="walletAddress" autocomplete="username"
+               required placeholder="ASTR-...">
+
+        <label for="password">Password</label>
+        <input id="password" type="password"
+               autocomplete="current-password" required>
+
+        <div class="actions">
+          <button id="loginButton" type="submit">Sign In</button>
+          <a href="signin.html">Create an account</a>
+        </div>
+      </form>
+    </section>
+
+    <section id="walletPanel" class="hidden">
+      <div class="panel">
+        <p class="muted">Available ASTR balance</p>
+        <div class="balance"><span id="balance">0</span> ASTR</div>
+        <p class="muted">Your wallet</p>
+        <div id="walletDisplay" class="wallet"></div>
+
+        <div class="actions">
+          <button id="refreshButton" class="secondary" type="button">
+            Refresh Wallet
+          </button>
+          <button id="logoutButton" class="secondary" type="button">
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>Send ASTR</h2>
+          <form id="sendForm">
+            <label for="recipient">Recipient Wallet Address</label>
+            <input id="recipient" required placeholder="ASTR-...">
+
+            <label for="sendAmount">Amount (ASTR)</label>
+            <input id="sendAmount" type="number" min="0.000001"
+                   step="any" required placeholder="10">
+
+            <label for="sendMemo">Message (optional)</label>
+            <textarea id="sendMemo" maxlength="200"
+                      placeholder="Payment note"></textarea>
+
+            <div class="actions">
+              <button id="sendButton" type="submit">Send ASTR</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Deposit Request</h2>
+          <p class="muted">
+            Submit a request for a deposit to be reviewed. This does not
+            automatically add funds to your balance.
+          </p>
+
+          <form id="depositForm">
+            <label for="depositAmount">Requested Amount (ASTR)</label>
+            <input id="depositAmount" type="number"
+                   min="0.000001" step="any" required
+                   placeholder="50">
+
+            <label for="depositMemo">Reference or Details</label>
+            <textarea id="depositMemo" maxlength="200"
+                      placeholder="Optional deposit details"></textarea>
+
+            <div class="actions">
+              <button id="depositButton" type="submit">
+                Request Deposit
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2>Transaction History</h2>
+        <p class="muted">Your latest 100 recorded transactions.</p>
+        <div id="history">
+          <p class="muted">Sign in to load your history.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const API_URL = "/api/astrality";
+
+    const $ = id => document.getElementById(id);
+
+    let currentWallet = "";
+    let currentPassword = "";
+    let busy = false;
+
+    function showNotice(text, type = "info") {
+      const element = $("notice");
+      element.className = "notice " + type;
+      element.textContent = text;
+    }
+
+    function clearNotice() {
+      $("notice").className = "notice";
+      $("notice").textContent = "";
+    }
+
+    async function callAPI(payload) {
+      let response;
+
+      try {
+        response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch {
+        throw new Error(
+          "Cannot reach the Astrality API. Check your Vercel deployment."
+        );
+      }
+
+      const text = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(
+          "The API returned an invalid response. Check api/astrality.js."
+        );
+      }
+
+      if (!response.ok || data.success !== true || data.error) {
+        throw new Error(
+          data.error || data.message ||
+          "The server did not confirm the request."
+        );
+      }
+
+      return data;
+    }
+
+    async function authenticatedRequest(action, extra = {}) {
+      if (!currentWallet || !currentPassword) {
+        throw new Error("Please sign in again.");
+      }
+
+      return callAPI({
+        action,
+        walletAddress: currentWallet,
+        password: currentPassword,
+        ...extra
+      });
+    }
+
+    function setBusy(value) {
+      busy = value;
+
+      [
+        "loginButton",
+        "sendButton",
+        "depositButton",
+        "refreshButton",
+        "logoutButton"
+      ].forEach(id => {
+        $(id).disabled = value;
+      });
+    }
+
+    function displayWallet(data) {
+      if (typeof data.balance === "number") {
+        $("balance").textContent = data.balance.toLocaleString(
+          undefined,
+          { maximumFractionDigits: 8 }
+        );
+      }
+
+      $("walletDisplay").textContent = currentWallet;
+    }
+
+    async function refreshWallet() {
+      const data = await authenticatedRequest("balance");
+      displayWallet(data);
+
+      const historyData = await authenticatedRequest("transactions");
+      renderTransactions(historyData.transactions || []);
+
+      if (typeof historyData.balance === "number") {
+        $("balance").textContent =
+          historyData.balance.toLocaleString(
+            undefined,
+            { maximumFractionDigits: 8 }
+          );
+      }
+    }
+
+    function renderTransactions(items) {
+      const container = $("history");
+      container.replaceChildren();
+
+      if (!items.length) {
+        const empty = document.createElement("p");
+        empty.className = "muted";
+        empty.textContent = "No transactions recorded yet.";
+        container.appendChild(empty);
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "transaction";
+
+        const title = document.createElement("strong");
+        title.textContent = String(item.type || "Transaction")
+          .replace(/_/g, " ");
+
+        const amount = document.createElement("div");
+        amount.className = "amount";
+        amount.textContent =
+          Number(item.amount).toLocaleString(
+            undefined,
+            { maximumFractionDigits: 8 }
+          ) + " ASTR";
+
+        const status = document.createElement("p");
+        status.className = "muted";
+        status.textContent = "Status: " + String(item.status || "Unknown");
+
+        const details = document.createElement("p");
+        details.className = "muted";
+
+        const isOutgoing = item.fromWallet === currentWallet;
+        const counterparty = isOutgoing
+          ? item.toWallet
+          : item.fromWallet;
+
+        details.textContent =
+          (isOutgoing ? "To: " : "From: ") +
+          String(counterparty || "System");
+
+        if (item.timestamp) {
+          const date = new Date(item.timestamp);
+
+          if (!Number.isNaN(date.getTime())) {
+            details.textContent += " · " + date.toLocaleString();
+          }
+        }
+
+        card.append(title, amount, status, details);
+
+        if (item.memo) {
+          const memo = document.createElement("p");
+          memo.className = "muted";
+          memo.textContent = String(item.memo);
+          card.appendChild(memo);
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    $("loginForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      if (busy) return;
+
+      clearNotice();
+      setBusy(true);
+
+      const wallet = $("walletAddress").value.trim();
+      const password = $("password").value;
+
+      try {
+        const data = await callAPI({
+          action: "login",
+          walletAddress: wallet,
+          password
+        });
+
+        currentWallet = data.walletAddress || wallet;
+        currentPassword = password;
+
+        $("loginPanel").classList.add("hidden");
+        $("walletPanel").classList.remove("hidden");
+
+        displayWallet(data);
+        await refreshWallet();
+
+        showNotice("Successfully signed in.", "success");
+        $("password").value = "";
+
+      } catch (error) {
+        currentWallet = "";
+        currentPassword = "";
+        showNotice(error.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("sendForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      if (busy) return;
+
+      const recipientWallet = $("recipient").value.trim();
+      const amount = Number($("sendAmount").value);
+      const memo = $("sendMemo").value.trim();
+
+      if (!Number.isFinite(amount) || amount <= 0) {
+        showNotice("Enter a valid amount.", "error");
+        return;
+      }
+
+      if (recipientWallet === currentWallet) {
+        showNotice("You cannot send ASTR to your own wallet.", "error");
+        return;
+      }
+
+      if (!confirm(
+        "Send " + amount + " ASTR to " + recipientWallet + "?"
+      )) return;
+
+      setBusy(true);
+
+      try {
+        const data = await authenticatedRequest("send", {
+          recipientWallet,
+          amount,
+          memo
+        });
+
+        $("sendForm").reset();
+        await refreshWallet();
+
+        showNotice(data.message || "Transfer completed.", "success");
+
+      } catch (error) {
+        showNotice(error.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("depositForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      if (busy) return;
+
+      const amount = Number($("depositAmount").value);
+      const memo = $("depositMemo").value.trim();
+
+      if (!Number.isFinite(amount) || amount <= 0) {
+        showNotice("Enter a valid deposit amount.", "error");
+        return;
+      }
+
+      if (!confirm(
+        "Submit a deposit request for " + amount +
+        " ASTR? This will not immediately add funds."
+      )) return;
+
+      setBusy(true);
+
+      try {
+        const data = await authenticatedRequest("deposit", {
+          amount,
+          memo
+        });
+
+        $("depositForm").reset();
+        await refreshWallet();
+
+        showNotice(data.message || "Deposit request submitted.", "success");
+
+      } catch (error) {
+        showNotice(error.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("refreshButton").addEventListener("click", async () => {
+      if (busy) return;
+
+      setBusy(true);
+
+      try {
+        await refreshWallet();
+        showNotice("Wallet and transaction history refreshed.", "success");
+      } catch (error) {
+        showNotice(error.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("logoutButton").addEventListener("click", () => {
+      currentWallet = "";
+      currentPassword = "";
+
+      $("loginForm").reset();
+      $("sendForm").reset();
+      $("depositForm").reset();
+
+      $("walletPanel").classList.add("hidden");
+      $("loginPanel").classList.remove("hidden");
+
+      clearNotice();
+      $("history").replaceChildren();
+      $("balance").textContent = "0";
+    });
+  </script>
+</body>
+</html>
