@@ -157,6 +157,20 @@
     .transaction strong { display: block; margin-bottom: 6px; }
     .amount { color: #c6bcff; font-weight: bold; }
 
+    .danger-panel {
+      border-color: #6b2d43;
+      background: linear-gradient(145deg, #211321, #141225);
+    }
+
+    .danger-button {
+      background: #8e2943;
+      border: 1px solid #b84a62;
+    }
+
+    .danger-button:hover {
+      background: #a8324e;
+    }
+
     @media (max-width: 480px) {
       .panel { padding: 17px; }
       .balance { font-size: 27px; }
@@ -267,6 +281,21 @@
           <p class="muted">Sign in to load your history.</p>
         </div>
       </section>
+
+      <section class="panel danger-panel">
+        <h2>Account Management</h2>
+        <p class="muted">
+          Permanently delete your Astrality account. This action cannot be
+          undone. The secure server-side deleteAccount action must be installed
+          before this button can complete deletion. Completed transaction
+          records may be retained in a privacy-preserving form for ledger integrity.
+        </p>
+        <div class="actions">
+          <button id="deleteAccountButton" class="danger-button" type="button">
+            Delete My Account
+          </button>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -349,7 +378,8 @@
         "sendButton",
         "depositButton",
         "refreshButton",
-        "logoutButton"
+        "logoutButton",
+        "deleteAccountButton"
       ].forEach(id => {
         $(id).disabled = value;
       });
@@ -594,6 +624,63 @@
       clearNotice();
       $("history").replaceChildren();
       $("balance").textContent = "0";
+    });
+
+    $("deleteAccountButton").addEventListener("click", async () => {
+      if (busy || !currentWallet || !currentPassword) {
+        showNotice("Please sign in again before deleting your account.", "error");
+        return;
+      }
+
+      const confirmed = confirm(
+        "Permanently delete the Astrality account for " + currentWallet +
+        "? This cannot be undone. Your balance will no longer be accessible. " +
+        "Necessary ledger audit records may be retained."
+      );
+      if (!confirmed) return;
+
+      const typedConfirmation = prompt(
+        'To confirm permanent deletion, type DELETE (all caps).'
+      );
+      if (typedConfirmation !== "DELETE") {
+        showNotice("Account deletion cancelled. The confirmation did not match.", "info");
+        return;
+      }
+
+      setBusy(true);
+      showNotice("Submitting account-deletion request…", "info");
+
+      try {
+        // The server must implement and authorize this action before the
+        // button can complete a deletion. Never delete account rows in the browser.
+        const data = await authenticatedRequest("deleteAccount", {
+          confirmation: "DELETE"
+        });
+
+        currentWallet = "";
+        currentPassword = "";
+        $("loginForm").reset();
+        $("sendForm").reset();
+        $("depositForm").reset();
+        $("walletPanel").classList.add("hidden");
+        $("loginPanel").classList.remove("hidden");
+        $("history").replaceChildren();
+        $("balance").textContent = "0";
+        $("walletDisplay").textContent = "";
+
+        showNotice(
+          data.message || "Your account deletion request was completed.",
+          "success"
+        );
+      } catch (error) {
+        showNotice(
+          error.message ||
+          "Account deletion is not available yet. The secure server-side action must be installed first.",
+          "error"
+        );
+      } finally {
+        setBusy(false);
+      }
     });
   </script>
 </body>
